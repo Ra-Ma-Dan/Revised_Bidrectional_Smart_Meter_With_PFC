@@ -98,6 +98,52 @@
 		)
 	)
 	(sheet
+		(at 218.44 22.86)
+		(size 64.77 63.5)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "980a4141-e70e-4dec-9835-7c0b865378bc")
+		(property "Sheetname" "ESP32_and_Relay_Drivers"
+			(at 218.44 22.1484 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "ESP32_and_Relay_Drivers.kicad_sch"
+			(at 218.44 86.9446 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "schematics"
+				(path "/b810f843-2be9-4bb4-80df-64e97cd1c4e8"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
 		(at 21.59 22.86)
 		(size 54.61 66.04)
 		(exclude_from_sim no)
@@ -139,6 +185,52 @@
 			(project "schematics"
 				(path "/b810f843-2be9-4bb4-80df-64e97cd1c4e8"
 					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 22.86 102.87)
+		(size 55.88 72.39)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "f34ef984-f26d-4cd2-97d1-9e212da54664")
+		(property "Sheetname" "Relay_Drivers"
+			(at 22.86 102.1584 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "Relay_Drivers.kicad_sch"
+			(at 22.86 175.8446 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "schematics"
+				(path "/b810f843-2be9-4bb4-80df-64e97cd1c4e8"
+					(page "6")
 				)
 			)
 		)
