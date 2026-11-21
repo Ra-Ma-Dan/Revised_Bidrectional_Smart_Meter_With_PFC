@@ -1,0 +1,33 @@
+name: ESP-IDF Firmware CI Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-firmware:
+    runs-on: ubuntu-24.04
+    container: espressif/idf:release-v6.1
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4.2.2
+        with:
+          submodules: 'recursive'
+
+      - name: Compile Smart_PFC_Meter Application
+        run: |
+          . $IDF_PATH/export.sh
+          idf.py set-target esp32s3
+          idf.py build
+          
+      - name: Upload Firmware Binary Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32s3-smart-meter-firmware
+          path: |
+            build/bootloader/bootloader.bin
+            build/partition_table/partition-table.bin
+            build/Smart_PFC_Meter.bin

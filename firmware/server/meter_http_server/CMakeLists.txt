@@ -1,0 +1,6 @@
+idf_component_register(SRCS "meter_http_server.c"
+                    INCLUDE_DIRS "include"
+                    REQUIRES esp_http_server pzem_sensor my_nvs my_wifi spiffs_storage
+                    EMBED_FILES "../webpage/index.html"
+                                   "../webpage/scripts.js"
+                                   "../webpage/style.css")

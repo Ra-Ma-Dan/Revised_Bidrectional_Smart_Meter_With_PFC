@@ -3,50 +3,43 @@
 
 #include "driver/gpio.h"
 
-// ── Pin definitions ──────────────────────────────────────────
+//Capacitor banks Relays pin
+#define CAPACITOR_1_RELAY   GPIO_NUM_10
+#define CAPACITOR_2_RELAY   GPIO_NUM_11
+#define CAPACITOR_3_RELAY   GPIO_NUM_12
+#define CAPACITOR_4_RELAY   GPIO_NUM_13
+#define NUM_CAP_BANKS       4
 
-// Display
-#define PIN_DISPLAY_DC    GPIO_NUM_4
-#define PIN_DISPLAY_RST   GPIO_NUM_5
-#define PIN_DISPLAY_CS    GPIO_NUM_6
-#define PIN_SPI_MOSI      GPIO_NUM_7
-#define PIN_SPI_CLK       GPIO_NUM_15
+//Main power Relay
+#define MAIN_POWER_RELAY    GPIO_NUM_14
 
-// I2C
-#define PIN_I2C_SDA       GPIO_NUM_8
-#define PIN_I2C_SCL       GPIO_NUM_9
+//LED Indicators Pin
+#define WIFI_LED_INDICATOR  GPIO_NUM_15
+#define INTERNET_INDICATOR  GPIO_NUM_16
+#define POFA_LED_INDICATOR  GPIO_NUM_17
 
-// Interrupt lines
-#define PIN_TOUCH_INT     GPIO_NUM_10
-#define PIN_BMI270_INT    GPIO_NUM_11
-#define PIN_AXP2101_IRQ   GPIO_NUM_12
+//i2c pins defination
+#define I2C_SDA_PIN         GPIO_NUM_21
+#define I2C_SCL_PIN         GPIO_NUM_20
+#define LCD_CNT_BTN         GPIO_NUM_42       // BTN that wakes the LCD
 
-// Buttons
-#define PIN_SOS_BUTTON    GPIO_NUM_0
+//UART pins configurations
+#define UART_RX_PIN         GPIO_NUM_18
+#define UART_TX_PIN         GPIO_NUM_19
 
-// ── Hold detection ───────────────────────────────────────────
-#define SOS_HOLD_MS       3000   // 3 seconds to trigger SOS
+#define PF_TARGET_MAX  0.95f   // Upper safety limit: Disengage bank if PF climbs over this (prevents over-correction)
+#define MIN_LOAD_POWER 50.0f   // Minimum load in Watts before correction activates
+#define PF_TARGET_MIN  0.85f   // Lower limit: Engage bank if PF falls below this
 
-// ── Callback types ───────────────────────────────────────────
+extern uint8_t active_capacitor_mask; // Bit 0 = Bank 1, Bit 1 = Bank 2, etc.
 
-// Functions you pass in to handle events
-typedef void (*gpio_callback_t)(void);
+static const gpio_num_t cap_bank_gpios[NUM_CAP_BANKS] = {
+    CAPACITOR_1_RELAY,
+    CAPACITOR_2_RELAY,
+    CAPACITOR_3_RELAY,
+    CAPACITOR_4_RELAY
+};
 
-// ── Function declarations ─────────────────────────────────────
-
-void gpio_driver_init(void);
-
-// Output control
-void gpio_driver_set_high(gpio_num_t pin);
-void gpio_driver_set_low(gpio_num_t pin);
-
-// Input reading
-int  gpio_driver_read(gpio_num_t pin);
-
-// Interrupt registration
-void gpio_driver_register_sos_callback(gpio_callback_t cb);
-void gpio_driver_register_touch_callback(gpio_callback_t cb);
-void gpio_driver_register_bmi270_callback(gpio_callback_t cb);
-void gpio_driver_register_axp2101_callback(gpio_callback_t cb);
+void my_gpio_init(void);
 
 #endif

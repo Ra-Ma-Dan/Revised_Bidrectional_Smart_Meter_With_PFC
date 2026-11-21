@@ -31,6 +31,6 @@
   "clangd.arguments": [
     "--background-index",
     "--query-driver=**",
-    "--compile-commands-dir=c:\\Users\\NCC\\Documents\\RaMaDan\\firmware\\build"
+    "--compile-commands-dir=c:\\Users\\NCC\\Documents\\RaMaDan\\New_PFC_Energy_Meter\\build"
   ]
 }

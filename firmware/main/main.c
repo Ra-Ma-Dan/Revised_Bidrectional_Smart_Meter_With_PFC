@@ -1,147 +1,142 @@
-#include "my_uart.h"
-#include "my_gpio.h"
-#include "my_i2c.h"
-#include "my_spi.h"
-#include "gc9a01.h"
-#include "APX2101.h"
-#include "MAX17048.h"
-#include "PCF85063A.h"
-#include "TMP117.h"
-#include "VEML7700.h"
-#include "MAX30102.h"
-#include "BMI270.h"
-#include "CST816S.h"
-#include "DRV2605L.h"
+#include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include <stdio.h>
+#include "esp_log.h"
+#include "esp_err.h"
+#include "freertos/queue.h"
 
-// ── Forward declarations ──────────────────────────────────────
-static void clock_task(void *arg);
-static void battery_task(void *arg);
-static void temp_task(void *arg);
-static void light_task(void *arg);
-static void heart_rate_task(void *arg);
-static void imu_task(void *arg);
+#include "pzem_sensor.h"
+#include "my_gpio.h"
+#include "my_i2c.h"
+#include "my_wifi.h"
+#include "meter_http_server.h"
+#include "pfc_task.h"
+#include "spiffs_storage.h" 
+#include "lcd_display.h"
 
-// ── Event handlers ────────────────────────────────────────────
+static const char *TAG = "App Main";
+QueueHandle_t recharge_queue = NULL;
+pzem_data_t live_pfc_data;
 
-void on_axp2101_irq(void)  { axp2101_handle_irq();      }
-void on_touch_interrupt(void) { cst816s_handle_interrupt(); }
-void on_bmi270_interrupt(void) {
-    bmi270_data_t data = {0};
-    bmi270_handle_interrupt(&data);
-    if (data.fall_detected) {
-        drv2605l_play_pattern(HAPTIC_PATTERN_SOS);
-        LOG_WARN(TAG_SYSTEM, "Fall detected — SOS triggered");
-    }
-    if (data.wrist_raised) {
-        LOG_INFO(TAG_SYSTEM, "Wrist raised — display wake");
-    }
-}
-
-void on_power_event(axp2101_btn_event_t event,
-                    axp2101_status_t    status) {
-    if (event == AXP_BTN_SHORT_PRESS) {
-        drv2605l_play_pattern(HAPTIC_PATTERN_BUTTON_CLICK);
-        LOG_INFO(TAG_POWER, "Short press");
-    }
-    if (event == AXP_BTN_LONG_PRESS) {
-        drv2605l_play_pattern(HAPTIC_PATTERN_WARNING);
-        gc9a01_fill_screen(COLOR_BLACK);
-        gc9a01_draw_string(70, 115,
-                           "Goodbye",
-                           COLOR_WHITE, COLOR_BLACK, 2);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        axp2101_ship_mode();
-    }
-}
-
-void on_sos_button(void) {
-    drv2605l_play_pattern(HAPTIC_PATTERN_SOS);
-    LOG_WARN(TAG_SYSTEM, "SOS button held — sending alert");
-}
-
-void on_touch(cst816s_touch_t touch) {
-    drv2605l_play_pattern(HAPTIC_PATTERN_SWIPE);
-    LOG_INFO(TAG_TOUCH, "%s at (%d,%d)",
-             cst816s_gesture_name(touch.gesture),
-             touch.x, touch.y);
-}
-
-// ── Boot sequence ─────────────────────────────────────────────
-
-void app_main(void) {
-
-    // Infrastructure
-    uart_driver_init(LOG_LEVEL_INFO);
-    uart_driver_log_system_info();
-    gpio_driver_init();
-    ESP_ERROR_CHECK(i2c_driver_init());
-    i2c_driver_scan();
-
-    // Power first
-    ESP_ERROR_CHECK(axp2101_init());
-    axp2101_register_callback(on_power_event);
-    gpio_driver_register_axp2101_callback(on_axp2101_irq);
-
-    // Battery
-    ESP_ERROR_CHECK(max17048_init());
-
-    // Time
-    ESP_ERROR_CHECK(pcf85063a_init());
-
-    // Display
-    ESP_ERROR_CHECK(gc9a01_init());
-
-    // Boot screen
-    gc9a01_fill_screen(COLOR_BLACK);
-    gc9a01_draw_circle(120, 120, 118, COLOR_WHITE);
-    gc9a01_draw_circle(120, 120, 116, COLOR_WHITE);
-    gc9a01_draw_string(55, 100,
-                       "AH WATCH",
-                       COLOR_WHITE, COLOR_BLACK, 2);
-    gc9a01_draw_string(75, 125,
-                       "Loading...",
-                       COLOR_CYAN,  COLOR_BLACK, 1);
-
-    // Sensors
-    ESP_ERROR_CHECK(tmp117_init());
-    ESP_ERROR_CHECK(veml7700_init());
-    ESP_ERROR_CHECK(max30102_init());
-    ESP_ERROR_CHECK(bmi270_init());
-
-    // Input
-    ESP_ERROR_CHECK(cst816s_init());
-    cst816s_register_callback(on_touch);
-    gpio_driver_register_touch_callback(on_touch_interrupt);
-    gpio_driver_register_bmi270_callback(on_bmi270_interrupt);
-    gpio_driver_register_sos_callback(on_sos_button);
-
-    // Haptics last — confirm everything is alive with a click
-    ESP_ERROR_CHECK(drv2605l_init());
-    vTaskDelay(pdMS_TO_TICKS(500));
-    drv2605l_play_pattern(HAPTIC_PATTERN_SUCCESS);
-
-    // Clear boot screen
-    vTaskDelay(pdMS_TO_TICKS(500));
-    gc9a01_fill_screen(COLOR_BLACK);
-    gc9a01_draw_circle(120, 120, 118, COLOR_WHITE);
-    gc9a01_draw_circle(120, 120, 116, COLOR_WHITE);
-
-    // Start all tasks
-    xTaskCreate(clock_task,      "clock",   2048, NULL, 5, NULL);
-    xTaskCreate(battery_task,    "battery", 2048, NULL, 3, NULL);
-    xTaskCreate(temp_task,       "temp",    2048, NULL, 2, NULL);
-    xTaskCreate(light_task,      "light",   2048, NULL, 2, NULL);
-    xTaskCreate(heart_rate_task, "hr",      4096, NULL, 2, NULL);
-    xTaskCreate(imu_task,        "imu",     3072, NULL, 3, NULL);
-
-    LOG_INFO(TAG_SYSTEM, "AH Watch boot complete");
-    LOG_INFO(TAG_SYSTEM, "All 13 drivers initialized");
-    LOG_INFO(TAG_SYSTEM, "6 tasks running");
+//1 Read Parameters form Sensor
+void energy_sensor_task(void *pvParameters) {
+    pzem_data_t readings;
 
     while (1) {
+        //if (pzem_read_data(&readings) == ESP_OK) {
+        if (random_pzem_reading(&readings) == ESP_OK) {
+                
+            live_pfc_data = readings;
+
+            // Optional: Calculate energy metrics consumption drop rates
+            // If active load consumption exists, draw against balance reserves
+            if (readings.power > 0.1f) {
+                // Approximate cost deduction per second based on current load
+                // e.g., ₦50 per kWh -> (Power in W / 1000) * (Hours) * Cost
+                float energy_kwh = (readings.power / 1000.0f) * (1.0f / 3600.0f);
+                float cost_per_sec = energy_kwh * POWER_TARIFF;
+                if (credit_balance > cost_per_sec) {
+                    credit_balance -= cost_per_sec;
+                } else {
+                    credit_balance = 0.0f;
+                }                
+            }
+        } else {
+            ESP_LOGW(TAG, "Telemetry link dropped. Re-checking device bus...");
+        }
+        vTaskDelay(pdMS_TO_TICKS(3000)); //3 secs between readings. to be changed for real PZEM sensor
+    }
+}
+
+// 2. Hardware Relay Protection Safety Interlock Task
+void power_task(void *pvParameters) {
+
+    while (1) {
+        // Auto-trip power cut if balance hits critical threshold
+        // User is only authorized to turn power ON if they actually have active credit
+        bool clear_to_run = (credit_balance > 3.0f) && power_state;
+        
+        gpio_set_level(MAIN_POWER_RELAY, clear_to_run ? 1 : 0);
+
+        // If credit runs out mid-operation, sync the user's state flag back to false
+        if (credit_balance <= 3.0f && power_state) {
+            power_state = false;
+            ESP_LOGW(TAG, "Credit balance depleted! Automatic relay shutdown triggered.");
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(100)); // 100ms safety monitoring window
+    }
+}
+// 3. Extensible Energy Logic Hooks Tasks
+void low_credit_task(void *pvParameters) {
+    while (1) {
+        // Safe check for absolute low balance conditions
+        if (credit_balance <= 20.0f && credit_balance > 3.0f) {
+            ESP_LOGW(TAG, "Low Credit Alert! Remaining Balance: ₦%.2f", credit_balance);
+            // Optional: Toggle a low-credit alert LED pin or beeper sequence here
+        }
+        
+        // Check balance status once every 5 seconds to reduce system processing overhead
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
+
+//4 The recharge task that processes the credits
+void recharge_task(void *pvParameters) {
+    recharge_queue = xQueueCreate(5, sizeof(float));
+    if (recharge_queue == NULL) {
+        ESP_LOGE(TAG, "Failed to initialize standard FreeRTOS queue tracking system");
+        return;
+    }
+    float received_topup = 0.0f;
+    ESP_LOGI(TAG, "Recharge background task handling initialized.");
+
+    while (1) {
+        // Block indefinitely (portMAX_DELAY) until a recharge arrives from the HTTP thread
+        if (xQueueReceive(recharge_queue, &received_topup, portMAX_DELAY) == pdPASS) {
+            
+            // 1. Thread-safe application of the balance adjustment
+            credit_balance += received_topup;
+            ESP_LOGI(TAG, "[TASK] Balance credited successfully. New Total: ₦%.2f", credit_balance);
+            
+            // 2. Clear critical load-shedding interlocks if necessary
+            // As seen in your frontend JS script, if credit drops <= 3.0, the load drops.
+            // If this recharge brings them back into positive standing, activate the relay.
+
+            // 3. (Optional but Recommended) Commit to flash memory here
+            // save_balance_to_nvs(credit_balance);
+        }
+    }
+}
+
+//5. The Local file logger
+
+
+void app_main(void)
+{
+    my_wifi_init();
+    my_i2c_init();
+    my_gpio_init();
+    // 1. Mount SPIFFS storage drive
+    init_energy_logger_storage();
+    // 2. Fire up the clock synchronizer when Wi-Fi connects
+    init_system_clock_sntp();
+    // 3. Launch the background logging task thread
+    // if (pzem_init() != ESP_OK){
+        //     ESP_LOGI(TAG, "Failed to initialized PZEM sensor");
+        // }
+        
+        xTaskCreatePinnedToCore(power_factor_correction_task, "Power_Factor_Correction", 4096, NULL, 5, NULL, 1);
+        xTaskCreatePinnedToCore(energy_sensor_task, "Energy_Sensor_Task", 4096, NULL, 5, NULL, 1);
+        xTaskCreatePinnedToCore(power_task, "Powering_ON_OFF_Task", 4096, NULL, 5, NULL, 1);
+        xTaskCreatePinnedToCore(recharge_task, "Recharging_task", 4096, NULL, 4, NULL, 1);
+        xTaskCreatePinnedToCore(low_credit_task, "Low Credit Task", 2048, NULL, 4, NULL, 0);
+        xTaskCreatePinnedToCore(lcd_display_task, "LCD_DISPLAY_TASK", 4096, NULL, 6, NULL, 1);
+        xTaskCreatePinnedToCore(energy_logger_background_task, "Monthly_data_telemetry_task", 4096, NULL, 3, NULL, 0);
+     
+    while(1){
+
         vTaskDelay(pdMS_TO_TICKS(1000));
+
     }
 }
