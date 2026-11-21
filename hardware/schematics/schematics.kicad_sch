@@ -2,9 +2,147 @@
 	(version 20260306)
 	(generator "eeschema")
 	(generator_version "10.0")
-	(uuid b810f843-2be9-4bb4-80df-64e97cd1c4e8)
+	(uuid "b810f843-2be9-4bb4-80df-64e97cd1c4e8")
 	(paper "A4")
 	(lib_symbols)
+	(sheet
+		(at 83.82 22.86)
+		(size 58.42 66.04)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "34e0506e-88ec-4540-ba5f-0accb59a9691")
+		(property "Sheetname" "ATM90E26_AFE"
+			(at 83.82 22.1484 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "ATM90E26_AFE.kicad_sch"
+			(at 83.82 89.4846 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "schematics"
+				(path "/b810f843-2be9-4bb4-80df-64e97cd1c4e8"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 148.59 22.86)
+		(size 64.77 64.77)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "63a6b9ce-f133-419b-a5c3-d48a0a965835")
+		(property "Sheetname" "Galvanic_Isolation"
+			(at 148.59 22.1484 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "Galvanic_Isolation.kicad_sch"
+			(at 148.59 88.2146 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "schematics"
+				(path "/b810f843-2be9-4bb4-80df-64e97cd1c4e8"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 21.59 22.86)
+		(size 54.61 66.04)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "e599df91-10af-4d88-a97c-e665cd02d5e4")
+		(property "Sheetname" "Power_and_Relays"
+			(at 21.59 22.1484 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "Power_and_Relays.kicad_sch"
+			(at 21.59 89.4846 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "schematics"
+				(path "/b810f843-2be9-4bb4-80df-64e97cd1c4e8"
+					(page "2")
+				)
+			)
+		)
+	)
 	(sheet_instances
 		(path "/"
 			(page "1")
