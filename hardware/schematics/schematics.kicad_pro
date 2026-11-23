@@ -526,7 +526,7 @@
         "tuning_profile": ""
       },
       {
-        "clearance": 3.0,
+        "clearance": 1.0,
         "name": "MAINS_HV",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 2,
@@ -540,7 +540,7 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 0,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.8,
+        "track_width": 0.4,
         "tuning_profile": ""
       }
     ],
@@ -563,7 +563,7 @@
         "pattern": "MAINS_N"
       },
       {
-        "netclass": "MAINS_HV",
+        "netclass": "P_SELV",
         "pattern": "GND_HOT"
       },
       {
@@ -597,6 +597,10 @@
       {
         "netclass": "P_SELV",
         "pattern": "+3V3_SELV"
+      },
+      {
+        "netclass": "MAINS_HV",
+        "pattern": "caps_terminal_L"
       }
     ]
   },
