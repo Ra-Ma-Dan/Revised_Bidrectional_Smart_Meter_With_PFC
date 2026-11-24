@@ -3489,6 +3489,7 @@
 	(symbol
 		(lib_id "Device:Crystal")
 		(at 97.79 104.14 90)
+		(mirror x)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3496,10 +3497,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "161f1513-7d0d-4d03-ba00-7a19e5f24dd3")
 		(property "Reference" "Y1"
-			(at 101.6 102.8699 90)
+			(at 101.6 105.4101 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3510,7 +3510,7 @@
 			)
 		)
 		(property "Value" "8.192MHz"
-			(at 101.6 105.4099 90)
+			(at 101.6 102.8701 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
